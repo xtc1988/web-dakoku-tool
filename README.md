@@ -28,7 +28,7 @@
 1. リポジトリをクローンまたはダウンロードします：
 
 ```bash
-git clone https://github.com/yourusername/web-dakoku-tool.git
+git clone https://github.com/xtc1988/web-dakoku-tool.git
 cd web-dakoku-tool
 ```
 
@@ -109,4 +109,4 @@ Web打刻システムの要素IDは、「詳細設定」タブで設定できま
 
 ## ライセンス
 
-MITライセンスの下で配布されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。 
+MITライセンスの下で配布されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。
