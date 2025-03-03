@@ -71,9 +71,14 @@ class ConfigManager:
             
             # パスワードの復号化
             if "password" in config and config["password"]:
-                encrypted_password = config["password"].encode("utf-8")
-                decrypted_password = self.fernet.decrypt(base64.b64decode(encrypted_password)).decode("utf-8")
-                config["password"] = decrypted_password
+                try:
+                    encrypted_password = config["password"].encode("utf-8")
+                    decrypted_password = self.fernet.decrypt(base64.b64decode(encrypted_password)).decode("utf-8")
+                    config["password"] = decrypted_password
+                except Exception as e:
+                    print(f"パスワードの復号化エラー: {e}")
+                    # 復号化に失敗した場合は空のパスワードを設定
+                    config["password"] = ""
             
             # セレクタ設定がない場合はデフォルト値を使用
             if "selectors" not in config:

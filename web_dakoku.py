@@ -69,32 +69,61 @@ class WebDakoku:
                 return False
             
             # ログインページにアクセス
+            logger.info(f"ログインページにアクセス: {url}")
             driver.get(url)
             
             # ログインフォームの入力
             try:
                 # ユーザーIDの入力
+                user_id_selector = self.selectors.get("user_id_input", "user_id")
+                logger.info(f"ユーザーID入力フィールドを検索: セレクタ={user_id_selector}")
                 id_input = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.ID, self.selectors.get("user_id_input", "user_id")))
+                    EC.presence_of_element_located((By.ID, user_id_selector))
                 )
                 id_input.clear()
                 id_input.send_keys(user_id)
+                logger.info("ユーザーIDを入力しました")
                 
                 # パスワードの入力
-                password_input = driver.find_element(By.ID, self.selectors.get("password_input", "password"))
-                password_input.clear()
-                password_input.send_keys(password)
+                password_selector = self.selectors.get("password_input", "password")
+                logger.info(f"パスワード入力フィールドを検索: セレクタ={password_selector}")
+                try:
+                    password_input = driver.find_element(By.ID, password_selector)
+                    password_input.clear()
+                    password_input.send_keys(password)
+                    logger.info("パスワードを入力しました")
+                except Exception as e:
+                    logger.error(f"パスワード入力フィールドの検索に失敗しました: {e}")
+                    return False
                 
                 # ログインボタンのクリック
-                login_button = driver.find_element(By.ID, self.selectors.get("login_button", "login_button"))
-                login_button.click()
+                login_button_selector = self.selectors.get("login_button", "login_button")
+                logger.info(f"ログインボタンを検索: セレクタ={login_button_selector}")
+                try:
+                    login_button = driver.find_element(By.ID, login_button_selector)
+                    login_button.click()
+                    logger.info("ログインボタンをクリックしました")
+                except Exception as e:
+                    logger.error(f"ログインボタンの検索に失敗しました: {e}")
+                    return False
                 
                 # ログイン成功の確認
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.ID, self.selectors.get("dakoku_panel", "dakoku_panel")))
-                )
-                
-                return True
+                dakoku_panel_selector = self.selectors.get("dakoku_panel", "dakoku_panel")
+                logger.info(f"打刻パネルを検索: セレクタ={dakoku_panel_selector}")
+                try:
+                    WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.ID, dakoku_panel_selector))
+                    )
+                    logger.info("ログインに成功しました")
+                    return True
+                except TimeoutException:
+                    logger.error(f"打刻パネルが見つかりませんでした。ログインに失敗した可能性があります。")
+                    # ページのHTMLソースを記録（デバッグ用）
+                    logger.debug(f"ページのHTML: {driver.page_source[:1000]}...")
+                    return False
+                except Exception as e:
+                    logger.error(f"打刻パネルの検索中にエラーが発生しました: {e}")
+                    return False
             except TimeoutException:
                 logger.error("ログイン処理がタイムアウトしました")
                 return False

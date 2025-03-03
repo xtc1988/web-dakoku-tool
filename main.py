@@ -269,11 +269,14 @@ class SettingsDialog(QDialog):
         """UI要素の設定"""
         layout = QVBoxLayout()
         
-        # タブウィジェットの作成
-        self.tab_widget = QTabWidget()
+        # スクロールエリアの作成
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_content = QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
         
-        # 基本設定タブ
-        basic_tab = QWidget()
+        # 基本設定グループ
+        basic_group = QGroupBox("基本設定")
         basic_layout = QVBoxLayout()
         
         # Web打刻URL
@@ -301,17 +304,8 @@ class SettingsDialog(QDialog):
         password_layout.addWidget(self.password_input)
         basic_layout.addLayout(password_layout)
         
-        basic_tab.setLayout(basic_layout)
-        
-        # 詳細設定タブ
-        advanced_tab = QWidget()
-        advanced_layout = QVBoxLayout()
-        
-        # スクロールエリアの作成
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_content = QWidget()
-        scroll_layout = QVBoxLayout(scroll_content)
+        basic_group.setLayout(basic_layout)
+        scroll_layout.addWidget(basic_group)
         
         # セレクタ設定グループ
         selectors_group = QGroupBox("Web要素セレクタ設定")
@@ -374,15 +368,7 @@ class SettingsDialog(QDialog):
         scroll_layout.addWidget(test_button)
         
         scroll_area.setWidget(scroll_content)
-        advanced_layout.addWidget(scroll_area)
-        
-        advanced_tab.setLayout(advanced_layout)
-        
-        # タブの追加
-        self.tab_widget.addTab(basic_tab, "基本設定")
-        self.tab_widget.addTab(advanced_tab, "詳細設定")
-        
-        layout.addWidget(self.tab_widget)
+        layout.addWidget(scroll_area)
         
         # ボタン
         button_layout = QHBoxLayout()
@@ -403,7 +389,10 @@ class SettingsDialog(QDialog):
         # 基本設定
         self.url_input.setText(config.get("url", ""))
         self.user_id_input.setText(config.get("user_id", ""))
-        # パスワードは表示しない（セキュリティ上の理由）
+        
+        # パスワードを読み込む（保持する）
+        if "password" in config and config["password"]:
+            self.password_input.setText(config.get("password", ""))
         
         # セレクタ設定
         selectors = config.get("selectors", {})
@@ -418,8 +407,12 @@ class SettingsDialog(QDialog):
         password = self.password_input.text()
         
         # 基本設定のバリデーション
-        if not url or not user_id:
-            QMessageBox.warning(self, "入力エラー", "URLとユーザーIDは必須項目です")
+        if not url:
+            QMessageBox.warning(self, "入力エラー", "URLは必須項目です")
+            return
+        
+        if not user_id:
+            QMessageBox.warning(self, "入力エラー", "ユーザーIDは必須項目です")
             return
         
         # パスワードが入力されていない場合は既存のパスワードを使用
@@ -454,8 +447,16 @@ class SettingsDialog(QDialog):
         user_id = self.user_id_input.text().strip()
         password = self.password_input.text()
         
-        if not url or not user_id or not password:
-            QMessageBox.warning(self, "入力エラー", "URLとユーザーID、パスワードを入力してください")
+        if not url:
+            QMessageBox.warning(self, "入力エラー", "URLを入力してください")
+            return
+        
+        if not user_id:
+            QMessageBox.warning(self, "入力エラー", "ユーザーIDを入力してください")
+            return
+        
+        if not password:
+            QMessageBox.warning(self, "入力エラー", "パスワードを入力してください")
             return
         
         # セレクタ設定の取得
@@ -477,19 +478,32 @@ class SettingsDialog(QDialog):
             
             # 別スレッドでテスト接続を実行
             def run_test():
-                driver = self.web_dakoku._setup_driver()
-                if not driver:
-                    QMessageBox.critical(self, "テスト接続エラー", "WebDriverの初期化に失敗しました")
-                    return
+                error_message = None
+                driver = None
                 
                 try:
+                    driver = self.web_dakoku._setup_driver()
+                    if not driver:
+                        error_message = "WebDriverの初期化に失敗しました"
+                        return
+                    
                     success = self.web_dakoku._login(driver)
                     if success:
                         QMessageBox.information(self, "テスト接続成功", "Web打刻システムへの接続に成功しました")
                     else:
-                        QMessageBox.warning(self, "テスト接続失敗", "Web打刻システムへの接続に失敗しました\n設定を確認してください")
+                        # ログからエラーメッセージを取得
+                        with open('web_dakoku.log', 'r', encoding='utf-8') as f:
+                            log_lines = f.readlines()
+                            # 最新の10行を取得
+                            recent_logs = ''.join(log_lines[-10:])
+                        
+                        error_message = f"Web打刻システムへの接続に失敗しました\n設定を確認してください\n\nエラーログ:\n{recent_logs}"
                 finally:
-                    driver.quit()
+                    if driver:
+                        driver.quit()
+                    
+                    if error_message:
+                        QMessageBox.warning(self, "テスト接続失敗", error_message)
             
             threading.Thread(target=run_test).start()
 
