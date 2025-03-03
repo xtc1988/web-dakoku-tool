@@ -32,8 +32,14 @@ git clone https://github.com/xtc1988/web-dakoku-tool.git
 cd web-dakoku-tool
 ```
 
+または、GitHubの[リポジトリページ](https://github.com/xtc1988/web-dakoku-tool)から「Code」→「Download ZIP」でダウンロードし、解凍してください。
+
 2. 必要なライブラリをインストールします：
 
+**方法1: バッチファイルを使用する場合（推奨）**
+- `install_dependencies.bat` をダブルクリックするだけで必要なライブラリがインストールされます。
+
+**方法2: コマンドラインを使用する場合**
 ```bash
 pip install -r requirements.txt
 ```
@@ -60,14 +66,17 @@ python main.py
 他のPCでWeb打刻ツールを使用するには、以下の手順に従ってください：
 
 1. 新しいPCにPython（3.8以上）をインストールします。
+   - [Python公式サイト](https://www.python.org/downloads/)からダウンロードしてインストール
+   - インストール時に「Add Python to PATH」にチェックを入れることを忘れないでください
+
 2. リポジトリをクローンまたはダウンロードします。
+   - GitHubの[リポジトリページ](https://github.com/xtc1988/web-dakoku-tool)から「Code」→「Download ZIP」でダウンロードし、解凍
+
 3. 必要なライブラリをインストールします：
+   - `install_dependencies.bat` をダブルクリックするだけでOK
 
-```bash
-pip install -r requirements.txt
-```
-
-4. アプリケーションを起動します。
+4. アプリケーションを起動します：
+   - `start_dakoku.bat` をダブルクリック
 
 ### 設定の移行
 
